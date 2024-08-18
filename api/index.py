@@ -15,15 +15,15 @@ from flask import (
 import datetime
 from pprint import pprint
 
-app = Flask(__name__, template_folder='templates')
-
-app.secret_key = 'secret key'
-table_name = 'listtracker-api-lists'
-
 
 import logging
 
 logging.basicConfig()
+
+app = Flask(__name__, template_folder='templates')
+
+app.secret_key = 'secret key'
+table_name = 'listtracker-api-lists'
 
 aws_session = boto3.Session()
 

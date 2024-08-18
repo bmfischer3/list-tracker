@@ -30,7 +30,7 @@ Resources:
         - Arn
       Runtime: python3.10
       Handler: index.handler
-      CodeUri: s3://foundation-general-fub0mzfatsvt/infrastructure/api/002c4dc6362b495a8725b16042b57678
+      CodeUri: s3://foundation-general-fub0mzfatsvt/infrastructure/api/231f2a9436eb0b5d5263ada4e8bc1886
       LoggingConfig:
         LogGroup:
           Ref: ApiRootLogs
