@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding-top: 60px; /* Space for the fixed header */
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #007bff;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        header nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        header nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin: 40px;
+            width: 300px; /* Ensures the buttons remain centered */
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/add-item">Add Item</a>
+        <a href="/add-list">Add List</a>
+        <a href="/list-contents">Get Lists</a>
+    </nav>
+</header>
+
+<div class="container">
+    <h1>Success!</h1>
+    <p>Your operation was completed successfully.</p>
+    <button onclick="window.location.href='/add-list'">Add List</button>
+    <button onclick="window.location.href='/add-item'">Add Item</button>
+    <button onclick="window.location.href='/delete-item'">Delete Item</button>
+    <button onclick="window.location.href='/delete-list'">Delete List</button>
+</div>
+
+</body>
+</html>

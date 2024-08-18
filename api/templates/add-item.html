@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 80px; /* Space for fixed header */
+            box-sizing: border-box;
+        }
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #007bff;
+            padding: 10px 0;
+            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        header nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        header nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin: 0;
+            width: 100%;
+            max-width: 90%;
+            flex-grow: 1;
+            overflow-x: auto;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 200px;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="text"], input[type="integer"], input[type="string"], input[type="int"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #available-lists {
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 8px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/add-item">Add Item</a>
+        <a href="/add-list">Add List</a>
+        <a href="/list-contents">Get Lists</a>
+    </nav>
+</header>
+
+<div class="container">
+    <h2>Get Available Lists</h2>
+
+    <form action="/add-item" method="post">
+        <label for="user_id">User ID:</label>
+        <input type="integer" id="user_id" name="user_id" required>
+        <button type="submit">Get Lists</button>
+    </form>
+
+    <h2>Add Item</h2>
+    <form action="/add-item" method="post">
+        <label for="user_id2">User ID:</label>
+        <input type="string" id="user_id2" name="user_id2" required>
+        <label for="list_id">List ID:</label>
+        <input type="string" id="list_id" name="list_id" required>
+        <label for="item_name">Item Name:</label>
+        <input type="string" id="item_name" name="item_name" required>
+        <label for="item_qty">Item Qty:</label>
+        <input type="int" id="item_qty" name="item_qty" required>
+        <button type="submit">Add Item</button>
+    </form>
+
+    <div id="available-lists">
+        <h2>Available Lists:</h2>
+        <ul>
+            <!-- Lists will be dynamically added here -->
+        </ul>
+    </div>
+
+    <h2>List of Dictionaries</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Created Datetime</th>
+                <th>List ID</th>
+                <th>List Name</th>
+                <th>User ID</th>
+                <th>Add Item to List</th>
+                <th>Delete List</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in session.pop('unique_lists', []) %}
+            <tr>
+                <td>{{ item.created_datetime }}</td>
+                <td>{{ item.list_id }}</td>
+                <td>{{ item.list_name }}</td>
+                <td>{{ item.user_id }}</td>
+                <td>Add item to list</td>
+                <td>Delete this list</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM template with a simple API definition
+Resources:
+
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+
+  ApiFunction: # Adds a GET method at the root resource via an Api event
+    Type: AWS::Serverless::Function
+    Properties:
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+            RestApiId: !Ref ApiGatewayApi
+        RootProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref ApiGatewayApi
+      Role: !GetAtt ListTrackerIAMExecutionRole.Arn
+      Runtime: python3.10
+      Handler: index.handler
+      CodeUri: ../api/ 
+      LoggingConfig:
+        LogGroup: !Ref ApiRootLogs
+
+  ApiRootLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+      LogGroupName: !Sub "${AWS::StackName}-ApiRoot"
+  
+  # setup deletion protection on prod, use mapping
+  ListTrackerDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-lists"
+      AttributeDefinitions:
+        - 
+          AttributeName: "user_id"
+          AttributeType: "S"
+        -
+          AttributeName: "list_id"
+          AttributeType: "S"
+      KeySchema:
+        - 
+          AttributeName: "user_id"
+          KeyType: "HASH"   # Partition Key
+        - 
+          AttributeName: "list_id"
+          KeyType: "RANGE"   # Sort Key
+
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      
+      Tags:
+        - Key: name
+          Value: dyanmodbtable 
+      
+  ListTrackerIAMExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "ListTrackerIAMExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 
+             - lambda.amazonaws.com
+             - apigateway.amazonaws.com
+          Action: 'sts:AssumeRole'
+      Policies:
+      - PolicyName: ListTrackerDynamoDBAcessPolicy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action: '*'
+              Resource: 
+              - !GetAtt ListTrackerDynamoDBTable.Arn
+              - !Sub "${ListTrackerDynamoDBTable.Arn}/*"
+            - Effect: Allow 
+              Action: '*'
+              Resource: 
+                - !GetAtt  ApiRootLogs.Arn
+                - !Sub "${ApiRootLogs.Arn}/*"
+
+
+
+  # # Below From: https://gist.github.com/singledigit/2c4d7232fa96d9e98a3de89cf6ebe7a5 
+
+
+  # UserPool:
+  #   Type: "AWS::Cognito::UserPool"
+  #   Properties:
+  #     UserPoolName: !Sub ${AWS::StackName}-user-pool
+  #     AutoVerifiedAttributes:
+  #       - email
+  #     MfaConfiguration: "OFF"
+
+  #     Schema:
+  #       - Name: name
+  #         AttributeDataType: String
+  #         Mutable: true
+  #         Required: true
+  #       - Name: email
+  #         AttributeDataType: String
+  #         Mutable: false
+  #         Required: true
+  
+  # # Creates a User Pool Client to be used by the identity pool
+  # UserPoolClient:
+  #   Type: "AWS::Cognito::UserPoolClient"
+  #   Properties:
+  #     ClientName: !Sub ${AWS::StackName}-client
+  #     GenerateSecret: false
+  #     UserPoolId: !Ref UserPool
+
+  # # Create a role for authorized acces to AWS resources. Control what your user can access. This example only allows Lambda invocation
+  # # Only allows users in the previously created Identity Pool
+  # CognitoAuthorizedRole:
+  #   Type: "AWS::IAM::Role"
+  #   Properties:
+  #     AssumeRolePolicyDocument: 
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: "Allow"
+  #           Principal: 
+  #             Federated: "cognito-identity.amazonaws.com"
+  #           Action: 
+  #             - "sts:AssumeRoleWithWebIdentity"
+  #           Condition:
+  #             StringEquals: 
+  #               "cognito-identity.amazonaws.com:aud": !Ref IdentityPool
+  #             "ForAnyValue:StringLike":
+  #               "cognito-identity.amazonaws.com:amr": authenticated
+  #     Policies:
+  #       - PolicyName: "CognitoAuthorizedPolicy"
+  #         PolicyDocument: 
+  #           Version: "2012-10-17"
+  #           Statement: 
+  #             - Effect: "Allow"
+  #               Action:
+  #                 - "mobileanalytics:PutEvents"
+  #                 - "cognito-sync:*"
+  #                 - "cognito-identity:*"
+  #               Resource: "*"
+  #             - Effect: "Allow"
+  #               Action:
+  #                 - "lambda:InvokeFunction"
+  #               Resource: "*"
+  
+  # # Assigns the roles to the Identity Pool
+  # IdentityPoolRoleMapping:
+  #   Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+  #   Properties:
+  #     IdentityPoolId: !Ref IdentityPool
+  #     Roles:
+  #       authenticated: !GetAtt CognitoAuthorizedRole.Arn

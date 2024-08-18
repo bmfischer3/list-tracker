@@ -1,0 +1,37 @@
+# Cloudformation that runs once. Base is needed for AWS env. 
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: ---
+# Metadata: 
+
+# Parameters: 
+
+# Mappings: 
+
+# Conditions: 
+
+Resources:
+  General:
+  # Don't name resources. Create the prefix needed. 
+  # Pascal/title case. 
+    Type: AWS::S3::Bucket
+    Properties: 
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: name
+          Value: general
+
+Outputs:
+  GeneralBucketName:
+    Description: Description for general bucket
+    Value: !Ref General
+    Export: 
+      Name: !Sub "${AWS::StackName}-GeneralBucketName"
+
+
+# TODO: Add billing alarms 
+# TODO: All AWS Bare minimum to get rolling. 

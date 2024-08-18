@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM template with a simple API definition
+Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+            RestApiId:
+              Ref: ApiGatewayApi
+        RootProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId:
+              Ref: ApiGatewayApi
+      Role:
+        Fn::GetAtt:
+        - ListTrackerIAMExecutionRole
+        - Arn
+      Runtime: python3.10
+      Handler: index.handler
+      CodeUri: s3://foundation-general-fub0mzfatsvt/infrastructure/api/002c4dc6362b495a8725b16042b57678
+      LoggingConfig:
+        LogGroup:
+          Ref: ApiRootLogs
+  ApiRootLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 1
+      LogGroupName:
+        Fn::Sub: ${AWS::StackName}-ApiRoot
+  ListTrackerDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: ${AWS::StackName}-lists
+      AttributeDefinitions:
+      - AttributeName: user_id
+        AttributeType: S
+      - AttributeName: list_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: user_id
+        KeyType: HASH
+      - AttributeName: list_id
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      Tags:
+      - Key: name
+        Value: dyanmodbtable
+  ListTrackerIAMExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ListTrackerIAMExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - apigateway.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: ListTrackerDynamoDBAcessPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: '*'
+            Resource:
+            - Fn::GetAtt:
+              - ListTrackerDynamoDBTable
+              - Arn
+            - Fn::Sub: ${ListTrackerDynamoDBTable.Arn}/*
+          - Effect: Allow
+            Action: '*'
+            Resource:
+            - Fn::GetAtt:
+              - ApiRootLogs
+              - Arn
+            - Fn::Sub: ${ApiRootLogs.Arn}/*
