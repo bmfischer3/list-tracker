@@ -95,8 +95,3 @@ Resources:
                 - !GetAtt  ApiRootLogs.Arn
                 - !Sub "${ApiRootLogs.Arn}/*"
 
-
-
-# Creating a User Pool
-
-# Create the UserPool, create/specify a new app client connected to the user pool. 

@@ -43,7 +43,3 @@ aws cloudformation deploy \
     --stack-name listtracker-api \
     --capabilities CAPABILITY_IAM \
     --capabilities CAPABILITY_NAMED_IAM
-
-
-# Add below to deployment.sh
-# https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-disable-default-endpoint.html
