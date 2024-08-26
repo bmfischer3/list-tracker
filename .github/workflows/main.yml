@@ -1,64 +1,65 @@
+name: Deploy Python Lambda API
+
 on:
   push:
     branches:
-    # Change to whatever branch you are on.
-
-
-name: Deploy Cluster
-
-on:
-  workflow_dispatch:
-    inputs:
-      region:
-        description: 'AWS Region'
-        required: true
-        default: 'eu-west-1'
-      keypair:
-        description: 'SSH Key Pair'
-        required: true
-  branches:
-    - feature/pipeline-dev/building-first-pipeline
+      - feature/pipeline-dev/building-first-pipeline
 
 jobs:
-  cluster:
-    name: Deploy stack to AWS
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      env-name: ${{ steps.env-name.outputs.environment }}
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      id: creds
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2 # To fetch the current commit and its parent (so we can compare)
+
+    - name: Setup AWS CLI
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ github.event.inputs.region}}
+        aws-region: us-east-1 
 
-    - name: Configure environment name
-      id: env-name
-      env:
-        REPO: ${{ github.repository }}
+    - name: Print changed files # To properly debug what is being deployed (It can be removed).
       run: |
-        ENVIRONMENT=`echo $REPO | tr "/" "-"`
-        echo "Environment name: $ENVIRONMENT"
-        echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+        echo "List of changed files:" 
+        echo $(git diff --name-only HEAD^ HEAD)
 
-    - name: Deploy Amazon EKS Cluster
-      id: eks-cluster
-      uses: aws-actions/aws-cloudformation-github-deploy@master
-      with:
-        name: ${{ steps.env-name.outputs.environment }}-cluster
-        template: https://s3.amazonaws.com/aws-quickstart/quickstart-amazon-eks/templates/amazon-eks-master.template.yaml
-        no-fail-on-empty-changeset: "1"
-        parameter-overrides: >-
-          AvailabilityZones=${{ github.event.inputs.region }}a,
-          AvailabilityZones=${{ github.event.inputs.region }}c,
-          KeyPairName=${{ github.event.inputs.keypair }},
-          NumberOfAZs=2,
-          ProvisionBastionHost=Disabled,
-          EKSPublicAccessEndpoint=Enabled,
-          EKSPrivateAccessEndpoint=Enabled,
-          RemoteAccessCIDR=0.0.0.0/0
+    - name: Deploy Modified Files
+      run: |
+        aws cloudformation deploy \
+            --template-file cloudformations/00_foundation.yaml \
+            --stack-name foundation \
+            --tags name=foundation
+
+        # Getting the GeneralBucketName 
+
+        GeneralBucketName=$(aws cloudformation describe-stacks \
+            --stack-name foundation \
+            --query 'Stacks[0].Outputs[?OutputKey==`GeneralBucketName`].OutputValue' \
+            --output text)
+
+        # Deploying the API
+
+        cfndir=$PWD
+        cd api
+        pip install -r requirements.txt -t .
+        cd $cfndir
+
+
+        aws cloudformation package \
+            --template-file cloudformations/01_api.yaml \
+            --s3-bucket $GeneralBucketName \
+            --s3-prefix infrastructure/api \
+            --output-template-file cloudformations/01_api_generated.yaml \
+
+
+        # TODO: Upload to bucket. 
+
+        aws cloudformation deploy \
+            --template-file cloudformations/01_api_generated.yaml \
+            --stack-name listtracker-api \
+            --capabilities CAPABILITY_IAM \
+            --capabilities CAPABILITY_NAMED_IAM
