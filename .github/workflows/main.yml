@@ -6,7 +6,7 @@ on:
       - release/1.0.0
 
 env:
-  AWS_REGION : <"us-east-1"> #Change to reflect your Region
+  AWS_REGION : us-east-1 #Change to reflect your Region
 
 permissions:
       id-token: write   # This is required for requesting the JWT
