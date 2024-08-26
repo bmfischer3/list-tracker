@@ -30,7 +30,7 @@ Resources:
         - Arn
       Runtime: python3.10
       Handler: index.handler
-      CodeUri: s3://foundation-general-fub0mzfatsvt/infrastructure/api/231f2a9436eb0b5d5263ada4e8bc1886
+      CodeUri: s3://foundation-general-fub0mzfatsvt/infrastructure/api/3e643079518674eae747a103c288d0d7
       LoggingConfig:
         LogGroup:
           Ref: ApiRootLogs
@@ -74,6 +74,7 @@ Resources:
             - lambda.amazonaws.com
             - apigateway.amazonaws.com
           Action: sts:AssumeRole
+          
       Policies:
       - PolicyName: ListTrackerDynamoDBAcessPolicy
         PolicyDocument:

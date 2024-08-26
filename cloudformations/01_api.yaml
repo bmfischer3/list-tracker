@@ -94,3 +94,4 @@ Resources:
               Resource: 
                 - !GetAtt  ApiRootLogs.Arn
                 - !Sub "${ApiRootLogs.Arn}/*"
+

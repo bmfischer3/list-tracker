@@ -43,5 +43,3 @@ aws cloudformation deploy \
     --stack-name listtracker-api \
     --capabilities CAPABILITY_IAM \
     --capabilities CAPABILITY_NAMED_IAM
-
-

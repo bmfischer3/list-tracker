@@ -6,7 +6,15 @@ Description: ---
 
 # Parameters: 
 
-# Mappings: 
+
+Mappings:
+  EstimatedCharges:
+    AlarmRange:     
+      "One" : 20      # It will trigger an alarm if your billing gets higher than $20
+      "Two" : 50      # It will trigger an alarm if your billing gets higher than $50
+      "Three" : 100   # It will trigger an alarm if your billing gets higher than $100
+      "Four" : 500    # It will trigger an alarm if your billing gets higher than $500
+      "Five" : 1000   # It will trigger an alarm if your billing gets higher than $1000
 
 # Conditions: 
 
@@ -24,6 +32,25 @@ Resources:
       Tags:
         - Key: name
           Value: general
+
+  BillingAlertOne:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      AlarmDescription: !Join ["", [Billing Alert for $, !FindInMap [EstimatedCharges, AlarmRange, One]]]
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      EvaluationPeriods: 1
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Period: 21600
+      TreatMissingData: breaching
+      Statistic: Maximum
+      Threshold: !FindInMap [EstimatedCharges, AlarmRange, One]
+
 
 Outputs:
   GeneralBucketName:
